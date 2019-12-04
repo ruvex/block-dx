@@ -38,8 +38,8 @@ const state = {
 
 state.set('locale', locale);
 state.set('locales', [
-  ['en', 'English']
-  // ['de', 'Deutsch']
+  ['en', 'English'],
+  ['de', 'Deutsch']
 ]);
 state.set('active', 0);
 state.set('sidebarSelected', 0);
