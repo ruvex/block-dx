@@ -34,6 +34,12 @@
       "note": ""
     }
   },
+  "Refresh Balances": {
+    "balances": {
+      "val": "Refresh Balances",
+      "note": ""
+    }
+  },
   "Mid Market Price": {
     "depthChart": {
       "val": "Mid Market Price",
@@ -2036,6 +2042,12 @@
       "note": ""
     }
   },
+  "Developer Newsletter": {
+    "informationWindowBlocknet": {
+      "val": "Developer Newsletter",
+      "note": ""
+    }
+  },
   "Technical Overview": {
     "informationWindowBlocknet": {
       "val": "Technical Overview",
@@ -2303,6 +2315,12 @@
   "Since trading utilizes the Blocknet wallet and the wallet of the assets being traded, these wallets must remain open and unlocked when trading. If the Blocknet wallet is closed, all orders will be canceled. If the Blocknet wallet is locked, all orders will fail. If the wallet of an asset being traded is closed or locked, all orders for that asset will fail. It is important to keep all wallets online until trades are fully completed.": {
     "informationWindowIntroduction": {
       "val": "Since trading utilizes the Blocknet wallet and the wallet of the assets being traded, these wallets must remain open and unlocked when trading. If the Blocknet wallet is closed, all orders will be canceled. If the Blocknet wallet is locked, all orders will fail. If the wallet of an asset being traded is closed or locked, all orders for that asset will fail. It is important to keep all wallets online until trades are fully completed.",
+      "note": ""
+    }
+  },
+  "Order Status": {
+    "informationWindowIntroduction": {
+      "val": "Order Status",
       "note": ""
     }
   },
