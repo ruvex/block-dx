@@ -15,6 +15,9 @@ const MarkdownIt = require('markdown-it');
 const { Localize } = require('./src-back/localize');
 const { blocknetDir4, blocknetDir3, BLOCKNET_CONF_NAME4, BLOCKNET_CONF_NAME3 } = require('./src-back/constants');
 const { checkAndCopyV3Configs } = require('./src-back/config-updater');
+const { BrowserWindow } = require('./src-back/browser-window');
+const { MainSwitch } = require('./src-back/main-switch');
+const { openUnverifiedAssetWindow } = require('./src-back/windows/unverified-asset-window');
 
 const versionDirectories = [
   blocknetDir4,
@@ -46,7 +49,7 @@ math.config({
 
 const md = new MarkdownIt();
 
-const { app, BrowserWindow, Menu, ipcMain } = electron;
+const { app, BrowserWindow: ElectronBrowserWindow, Menu, ipcMain } = electron;
 
 autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = true;
@@ -177,7 +180,7 @@ const openOrderDetailsWindow = details => {
     height = 645;
   }
 
-  const detailsWindow = new BrowserWindow({
+  const detailsWindow = new ElectronBrowserWindow({
     show: false,
     width: 800,
     height,
@@ -262,7 +265,7 @@ const openUpdateAvailableWindow = (v, windowType, hideCheckbox = false) => new P
 
   updateAvailableWindowOpen = true;
 
-  const updateAvailableWindow = new BrowserWindow({
+  const updateAvailableWindow = new ElectronBrowserWindow({
     show: false,
     width: 580,
     height: platform === 'win32' ? 375 : platform === 'darwin' ? 355 : 340,
@@ -389,7 +392,7 @@ const openConfigurationWindow = (options = {}) => {
     errorMessage = '';
   }
 
-  configurationWindow = new BrowserWindow({
+  configurationWindow = new ElectronBrowserWindow({
     show: false,
     width: 1050,
     height: platform === 'win32' ? 708 : platform === 'darwin' ? 695 : 670,
@@ -433,15 +436,6 @@ const openConfigurationWindow = (options = {}) => {
     try {
       openSettingsWindow();
       configurationWindow.close();
-    } catch(err) {
-      handleError(err);
-    }
-  });
-
-  ipcMain.removeAllListeners('getManifest');
-  ipcMain.on('getManifest', async function(e) {
-    try {
-      e.returnValue = getManifest();
     } catch(err) {
       handleError(err);
     }
@@ -523,6 +517,33 @@ const openConfigurationWindow = (options = {}) => {
 
 };
 
+ipcMain.on('getManifest', async function(e) {
+  try {
+    e.returnValue = getManifest();
+  } catch(err) {
+    handleError(err);
+  }
+});
+
+ipcMain.on('checkTokensAgainstManifest', async function(e, tokens = []) {
+  try {
+    const manifest = getManifest();
+    const verifiedTokens = new Set(manifest.map(({ ticker }) => ticker));
+    e.returnValue = tokens.reduce((obj, t) => Object.assign({}, obj, {[t]: verifiedTokens.has(t)}), {});
+  } catch(err) {
+    handleError(err);
+  }
+});
+
+ipcMain.on('getDoNotShowWarningAssetPairs', e => {
+  const doNotShowWarningPairs = storage.getItem('doNotShowAssetPairs') || [];
+  e.returnValue = doNotShowWarningPairs;
+});
+ipcMain.on('addToDoNotShowWarningAssetPairs', (e, pair) => {
+  const doNotShowWarningPairs = storage.getItem('doNotShowAssetPairs') || [];
+  storage.setItem('doNotShowAssetPairs', [...doNotShowWarningPairs, pair]);
+});
+
 const getBaseDataPath = () => (platform === 'win32' || platform === 'darwin') ? getDataPath() : getHomePath();
 
 ipcMain.on('closeConfigurationWindow', e => {
@@ -575,7 +596,7 @@ const openSettingsWindow = (options = {}) => {
     }
   });
 
-  const settingsWindow = new BrowserWindow({
+  const settingsWindow = new ElectronBrowserWindow({
     show: false,
     width: 500,
     height: platform === 'win32' ? 640 : platform === 'darwin' ? 625 : 600,
@@ -660,7 +681,7 @@ ipcMain.on('getBlocknetIP', e => {
 
 const openGeneralSettingsWindow = () => {
 
-  const generalSettingsWindow = new BrowserWindow({
+  const generalSettingsWindow = new ElectronBrowserWindow({
     show: false,
     width: 1000,
     height: platform === 'win32' ? 708 : platform === 'darwin' ? 695 : 670,
@@ -688,7 +709,7 @@ ipcMain.on('getShowWallet', e => {
 let informationWindow;
 
 const openInformationWindow = () => {
-  informationWindow = new BrowserWindow({
+  informationWindow = new ElectronBrowserWindow({
     show: false,
     width: 1000,
     height: platform === 'win32' ? 708 : platform === 'darwin' ? 695 : 670,
@@ -726,7 +747,7 @@ const openReleaseNotesWindow = () => {
     height = 645;
   }
 
-  releaseNotesWindow = new BrowserWindow({
+  releaseNotesWindow = new ElectronBrowserWindow({
     show: false,
     width: 500,
     height: height,
@@ -797,7 +818,7 @@ const openTOSWindow = (alreadyAccepted = false) => {
     height = alreadyAccepted ? 645 : 700;
   }
 
-  tosWindow = new BrowserWindow({
+  tosWindow = new ElectronBrowserWindow({
     show: false,
     width: 500,
     height: height,
@@ -823,7 +844,7 @@ const openAppWindow = () => {
   let { height } = electron.screen.getPrimaryDisplay().workAreaSize;
   height -= 300;
   let width = Math.floor(height * 1.5);
-  appWindow = new BrowserWindow({
+  appWindow = new ElectronBrowserWindow({
     show: false,
     width: Math.max(width, 1050),
     height: Math.max(height, 760)
@@ -1334,6 +1355,10 @@ const openAppWindow = () => {
   });
 
 };
+
+MainSwitch.register('openUnverifiedAssetWindow', async function(tokens) {
+  openUnverifiedAssetWindow(tokens, platform, appWindow);
+});
 
 ipcMain.on('openSettings', () => {
   openSettingsWindow();
