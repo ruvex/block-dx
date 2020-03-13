@@ -15,7 +15,6 @@ const MarkdownIt = require('markdown-it');
 const { Localize } = require('./src-back/localize');
 const { blocknetDir4, blocknetDir3, BLOCKNET_CONF_NAME4, BLOCKNET_CONF_NAME3 } = require('./src-back/constants');
 const { checkAndCopyV3Configs } = require('./src-back/config-updater');
-const { BrowserWindow } = require('./src-back/browser-window');
 const { MainSwitch } = require('./src-back/main-switch');
 const { openUnverifiedAssetWindow } = require('./src-back/windows/unverified-asset-window');
 
@@ -82,6 +81,8 @@ ipcMain.on('quitResetFirstRun', () => {
   app.quit();
 });
 
+ipcMain.on('getPlatform', e => e.returnValue = process.platform);
+
 const configurationFilesDirectory = path.join(__dirname, 'blockchain-configuration-files');
 
 const getManifest = () => {
@@ -101,13 +102,32 @@ const getManifest = () => {
   return manifest;
 };
 
+const zoomIn = () => {
+  const windows = ElectronBrowserWindow.getAllWindows();
+  windows.forEach(w => {
+    w.send('ZOOM_IN');
+  });
+};
+const zoomOut = () => {
+  const windows = ElectronBrowserWindow.getAllWindows();
+  windows.forEach(w => {
+    w.send('ZOOM_OUT');
+  });
+};
+const zoomReset = () => {
+  const windows = ElectronBrowserWindow.getAllWindows();
+  windows.forEach(w => {
+    w.send('ZOOM_RESET');
+  });
+};
+
 const setAppMenu = () => {
 
   const menuTemplate = [];
 
   // File Menu
   menuTemplate.push({
-    label: 'File',
+    label: Localize.text('File', 'universal'),
     submenu: [
       { role: 'quit' }
     ]
@@ -115,7 +135,7 @@ const setAppMenu = () => {
 
   // Edit Menu
   menuTemplate.push({
-    label: 'Edit',
+    label: Localize.text('Edit', 'universal'),
     submenu: [
       { role: 'undo' },
       { role: 'redo' },
@@ -127,10 +147,37 @@ const setAppMenu = () => {
     ]
   });
 
+  // Edit Menu
+  menuTemplate.push({
+    label: Localize.text('View', 'universal'),
+    submenu: [
+      {
+        label: Localize.text('Zoom', 'universal'),
+        submenu: [
+          {
+            label: Localize.text('Zoom In', 'univeral'),
+            click: zoomIn
+          },
+          {
+            label: Localize.text('Zoom Out', 'univeral'),
+            click: zoomOut
+          },
+          {
+            type: 'separator'
+          },
+          {
+            label: Localize.text('Reset Zoom', 'univeral'),
+            click: zoomReset
+          }
+        ]
+      }
+    ]
+  });
+
   // Window Menu
   if(isDev) {
     menuTemplate.push({
-      label: 'Window',
+      label: Localize.text('Window', 'universal'),
       submenu: [
         { label: 'Show Dev Tools', role: 'toggledevtools' }
       ]
@@ -141,6 +188,10 @@ const setAppMenu = () => {
   Menu.setApplicationMenu(appMenu);
 
 };
+
+ipcMain.on('ZOOM_IN', zoomIn);
+ipcMain.on('ZOOM_OUT', zoomOut);
+ipcMain.on('ZOOM_RESET', zoomReset);
 
 // General Error Handler
 const handleError = err => {
@@ -203,6 +254,7 @@ const openOrderDetailsWindow = details => {
     detailsWindow.loadURL(`file://${path.join(__dirname, 'dist', 'order-details.html')}`);
   }
   detailsWindow.once('ready-to-show', () => {
+    appWindow.webContents.setZoomFactor(storage.getItem('zoomFactor'));
     detailsWindow.show();
   });
 
@@ -292,6 +344,7 @@ const openUpdateAvailableWindow = (v, windowType, hideCheckbox = false) => new P
     updateAvailableWindow.loadURL(`file://${path.join(__dirname, 'dist', 'update-available.html')}`);
   }
   updateAvailableWindow.once('ready-to-show', () => {
+    appWindow.webContents.setZoomFactor(storage.getItem('zoomFactor'));
     updateAvailableWindow.show();
   });
   updateAvailableWindow.once('close', () => {
@@ -422,6 +475,7 @@ const openConfigurationWindow = (options = {}) => {
     configurationWindow.loadURL(`file://${path.join(__dirname, 'dist', 'configuration.html')}`);
   }
   configurationWindow.once('ready-to-show', () => {
+    appWindow.webContents.setZoomFactor(storage.getItem('zoomFactor'));
     configurationWindow.show();
 
     setTimeout(() => {
@@ -629,6 +683,7 @@ const openSettingsWindow = (options = {}) => {
     settingsWindow.loadURL(`file://${path.join(__dirname, 'dist', 'rpc-settings.html')}`);
   }
   settingsWindow.once('ready-to-show', () => {
+    appWindow.webContents.setZoomFactor(storage.getItem('zoomFactor'));
     settingsWindow.show();
     if(errorMessage) {
       settingsWindow.send('errorMessage', errorMessage);
@@ -720,6 +775,7 @@ const openGeneralSettingsWindow = () => {
     generalSettingsWindow.loadURL(`file://${path.join(__dirname, 'dist', 'settings.html')}`);
   }
   generalSettingsWindow.once('ready-to-show', () => {
+    appWindow.webContents.setZoomFactor(storage.getItem('zoomFactor'));
     generalSettingsWindow.show();
   });
 
@@ -751,6 +807,7 @@ const openInformationWindow = () => {
     informationWindow.loadURL(`file://${path.join(__dirname, 'dist', 'information.html')}`);
   }
   informationWindow.once('ready-to-show', () => {
+    appWindow.webContents.setZoomFactor(storage.getItem('zoomFactor'));
     informationWindow.show();
   });
 
@@ -788,6 +845,7 @@ const openReleaseNotesWindow = () => {
     releaseNotesWindow.loadURL(`file://${path.join(__dirname, 'dist', 'release-notes.html')}`);
   }
   releaseNotesWindow.once('ready-to-show', () => {
+    appWindow.webContents.setZoomFactor(storage.getItem('zoomFactor'));
     releaseNotesWindow.show();
   });
 
@@ -862,6 +920,7 @@ const openTOSWindow = (alreadyAccepted = false) => {
     tosWindow.loadURL(`file://${path.join(__dirname, 'dist', 'tos.html')}`);
   }
   tosWindow.once('ready-to-show', () => {
+    appWindow.webContents.setZoomFactor(storage.getItem('zoomFactor'));
     tosWindow.show();
   });
 
@@ -875,7 +934,7 @@ const openAppWindow = () => {
 
   let { height } = electron.screen.getPrimaryDisplay().workAreaSize;
   height -= 300;
-  let width = Math.floor(height * 1.5);
+  const width = Math.floor(height * 1.5);
   appWindow = new ElectronBrowserWindow({
     show: false,
     width: Math.max(width, 1050),
@@ -883,6 +942,12 @@ const openAppWindow = () => {
     webPreferences: {
       nodeIntegration: true
     }
+    // Below is the proper way to set the initial window zoom factor, but there is a bug
+    // in Electron 3 which causes it to not work correctly. When we upgrade, we can
+    // un-comment this section and remove the setZoomFactor() from the 'ready-to-show' event
+    // webPreferences: {
+    //   zoomFactor: storage.getItem('zoomFactor')
+    // }
   });
 
   const initialBounds = storage.getItem('bounds');
@@ -901,6 +966,7 @@ const openAppWindow = () => {
   }
 
   appWindow.once('ready-to-show', () => {
+    appWindow.webContents.setZoomFactor(storage.getItem('zoomFactor'));
     appWindow.show();
   });
 
@@ -1392,7 +1458,7 @@ const openAppWindow = () => {
 };
 
 MainSwitch.register('openUnverifiedAssetWindow', async function(tokens) {
-  const doNotShowAgain = await openUnverifiedAssetWindow(tokens, platform, appWindow);
+  const doNotShowAgain = await openUnverifiedAssetWindow(tokens, platform, appWindow, storage);
   return doNotShowAgain;
 });
 
@@ -1614,6 +1680,9 @@ ipcMain.on('generateNewAddresses', async function(e) {
   appWindow.send('updatedAddresses', addresses);
 });
 
+ipcMain.on('setZoomFactor', (e, zoomFactor) => storage.setItem('zoomFactor', zoomFactor));
+ipcMain.on('getZoomFactor', (e) => e.returnValue = storage.getItem('zoomFactor'));
+
 // Run the application within async function for flow control
 (async function() {
   try {
@@ -1638,6 +1707,9 @@ ipcMain.on('generateNewAddresses', async function(e) {
       locale = 'en';
       storage.setItem('locale', defaultLocale);
     }
+
+    const zoomFactor = storage.getItem('zoomFactor');
+    if(!zoomFactor) storage.setItem('zoomFactor', 1);
 
     Localize.initialize(locale, getLocaleData());
 
