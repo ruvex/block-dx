@@ -82,6 +82,8 @@ ipcMain.on('quitResetFirstRun', () => {
   app.quit();
 });
 
+ipcMain.on('getPlatform', e => e.returnValue = process.platform);
+
 const configurationFilesDirectory = path.join(__dirname, 'blockchain-configuration-files');
 
 const getManifest = () => {
@@ -847,7 +849,13 @@ const openAppWindow = () => {
   appWindow = new ElectronBrowserWindow({
     show: false,
     width: Math.max(width, 1050),
-    height: Math.max(height, 760)
+    height: Math.max(height, 760),
+    // Below is the proper way to set the initial window zoom factor, but there is a bug
+    // in Electron 3 which causes it to not work correctly. When we upgrade, we can
+    // un-comment this section and remove the setZoomFactor() from the 'ready-to-show' event
+    // webPreferences: {
+    //   zoomFactor: storage.getItem('zoomFactor')
+    // }
   });
 
   const initialBounds = storage.getItem('bounds');
@@ -866,6 +874,7 @@ const openAppWindow = () => {
   }
 
   appWindow.once('ready-to-show', () => {
+    appWindow.webContents.setZoomFactor(storage.getItem('zoomFactor'));
     appWindow.show();
   });
 
@@ -1578,6 +1587,8 @@ ipcMain.on('generateNewAddresses', async function(e) {
   appWindow.send('updatedAddresses', addresses);
 });
 
+ipcMain.on('setZoomFactor', (e, zoomFactor) => storage.setItem('zoomFactor', zoomFactor));
+
 // Run the application within async function for flow control
 (async function() {
   try {
@@ -1602,6 +1613,9 @@ ipcMain.on('generateNewAddresses', async function(e) {
       locale = 'en';
       storage.setItem('locale', defaultLocale);
     }
+
+    const zoomFactor = storage.getItem('zoomFactor');
+    if(!zoomFactor) storage.setItem('zoomFactor', 1);
 
     Localize.initialize(locale, getLocaleData());
 
