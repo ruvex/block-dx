@@ -401,10 +401,10 @@ const openConfigurationWindow = (options = {}) => {
     parent: appWindow
   });
   if(isDev) {
-    configurationWindow.loadURL(`file://${path.join(__dirname, 'src', 'automation.html')}`);
+    configurationWindow.loadURL(`file://${path.join(__dirname, 'src', 'configuration.html')}`);
   } else {
     configurationWindow.setMenu(null);
-    configurationWindow.loadURL(`file://${path.join(__dirname, 'dist', 'automation.html')}`);
+    configurationWindow.loadURL(`file://${path.join(__dirname, 'dist', 'configuration.html')}`);
   }
   configurationWindow.once('ready-to-show', () => {
     configurationWindow.show();
@@ -605,10 +605,10 @@ const openSettingsWindow = (options = {}) => {
     parent: appWindow
   });
   if(isDev) {
-    settingsWindow.loadURL(`file://${path.join(__dirname, 'src', 'settings.html')}`);
+    settingsWindow.loadURL(`file://${path.join(__dirname, 'src', 'rpc-settings.html')}`);
   } else {
     settingsWindow.setMenu(null);
-    settingsWindow.loadURL(`file://${path.join(__dirname, 'dist', 'settings.html')}`);
+    settingsWindow.loadURL(`file://${path.join(__dirname, 'dist', 'rpc-settings.html')}`);
   }
   settingsWindow.once('ready-to-show', () => {
     settingsWindow.show();
@@ -694,9 +694,9 @@ const openGeneralSettingsWindow = () => {
   generalSettingsWindow.setMenu(null);
 
   if(isDev) {
-    generalSettingsWindow.loadURL(`file://${path.join(__dirname, 'src', 'general-settings.html')}`);
+    generalSettingsWindow.loadURL(`file://${path.join(__dirname, 'src', 'settings.html')}`);
   } else {
-    generalSettingsWindow.loadURL(`file://${path.join(__dirname, 'dist', 'general-settings.html')}`);
+    generalSettingsWindow.loadURL(`file://${path.join(__dirname, 'dist', 'settings.html')}`);
   }
   generalSettingsWindow.once('ready-to-show', () => {
     generalSettingsWindow.show();
