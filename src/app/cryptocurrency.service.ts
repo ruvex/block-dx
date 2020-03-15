@@ -100,22 +100,22 @@ export class CryptocurrencyService {
         // Unverified coins for testing purposes
         const unverifiedCoins = [
           Cryptocurrency.fromObject({
-            symbol: 'TEST',
-            name: 'Test',
+            symbol: 'TESTA',
+            name: 'Test A',
             last: 0,
             change: 0,
             local: false
           }),
           Cryptocurrency.fromObject({
-            symbol: 'DANK',
-            name: 'Dank',
+            symbol: 'TESTB',
+            name: 'Test B',
             last: 0,
             change: 0,
             local: false
           }),
           Cryptocurrency.fromObject({
-            symbol: 'MEMES',
-            name: 'Memes',
+            symbol: 'TESTC',
+            name: 'Test C',
             last: 0,
             change: 0,
             local: false
